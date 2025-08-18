@@ -9,16 +9,26 @@ test('login screen can be rendered', function () {
 });
 
 test('users can authenticate using the login screen', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->create([
+        'role' => 'admin', // or publisher
+    ]);
 
     $response = $this->post('/login', [
         'email' => $user->email,
-        'password' => 'password',
+        'password' => 'password', // plain text, not hashed
     ]);
 
-    $this->assertAuthenticated();
-    $response->assertRedirect(route('dashboard', absolute: false));
+    $this->assertAuthenticatedAs($user);
+
+    if ($user->role === 'admin') {
+        $response->assertRedirect(route('admin.dashboard'));
+    } elseif ($user->role === 'publisher') {
+        $response->assertRedirect(route('publisher.dashboard'));
+    } else {
+        $response->assertRedirect(route('home'));
+    }
 });
+
 
 test('users can not authenticate with invalid password', function () {
     $user = User::factory()->create();
