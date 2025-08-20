@@ -29,6 +29,7 @@ Route::middleware(['auth', 'verified', 'roleManager:admin'])->group(function () 
     })->name('admin.dashboard');
 
     Route::get('users', [UserController::class, 'index'])->name('users.index');
+    Route::get('users/create', [UserController::class, 'create'])->name('users.create');
 });
 
 // Publisher Route
