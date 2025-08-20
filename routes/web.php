@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -26,6 +27,8 @@ Route::middleware(['auth', 'verified', 'roleManager:admin'])->group(function () 
     Route::get('admin/dashboard', function () {
         return Inertia::render('Admin/dashboard');
     })->name('admin.dashboard');
+
+    Route::get('users', [UserController::class, 'index'])->name('users.index');
 });
 
 // Publisher Route

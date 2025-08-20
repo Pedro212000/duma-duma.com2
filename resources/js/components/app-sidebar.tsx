@@ -41,7 +41,7 @@ interface PageProps extends InertiaPageProps {
 // ✅ Role-based sidebar config
 const sidebarConfig: Record<string, NavItem[]> = {
     admin: [
-        { title: 'admisdfsf', href: '/dashboard', icon: LayoutGrid },
+        { title: 'Dashboard', href: '/admin/dashboard', icon: LayoutGrid },
         { title: 'Users', href: '/users', icon: Users },
         { title: 'Settings', href: '/settings', icon: Settings },
     ],
