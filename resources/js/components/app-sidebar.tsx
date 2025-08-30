@@ -46,7 +46,7 @@ const sidebarConfig: Record<string, NavItem[]> = {
         { title: 'Settings', href: '/settings', icon: Settings },
     ],
     publisher: [
-        { title: 'Dashboasdfrd', href: '/dashboard', icon: LayoutGrid },
+        { title: 'Dashboard', href: 'publisher/dashboard', icon: LayoutGrid },
         { title: 'Posts', href: '/posts', icon: FileText },
     ],
     // Note: If role is not found, we fallback to 'user' below,

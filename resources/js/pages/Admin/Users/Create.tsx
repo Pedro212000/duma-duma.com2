@@ -17,12 +17,7 @@ export default function Index() {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Users" />
             <div className="w-18/12 p-4">
-                <Form action="">
-                    <div className="gap-1.5 max-w-sm">
-                        <Label htmlFor="username">Username</Label>
-                        <Input id="username" placeholder="Username" />
-                    </div>
-                </Form>
+
             </div>
         </AppLayout>
     );
