@@ -82,6 +82,7 @@
             "php-http/discovery": true
         }
     },
+    "start": "php artisan serve --host=0.0.0.0 --port=${PORT}",
     "minimum-stability": "stable",
     "prefer-stable": true
 }
