@@ -40,7 +40,7 @@ interface PageProps extends InertiaPageProps {
 
 export default function Index() {
     const { users, flash } = usePage<PageProps>().props;
-    const { processing, delete: destroy } = useForm();
+    const { processing } = useForm();
     const handleDelete = (id: number, name: string) => {
         if (confirm(`Do you want to delete user ${id}. ${name}?`)) {
             router.delete(`/users/${id}`, {
