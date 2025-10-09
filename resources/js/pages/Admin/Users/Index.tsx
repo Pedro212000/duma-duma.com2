@@ -1,10 +1,10 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Button } from '@/components/ui/button';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { BellPlus } from 'lucide-react';
-import { PageProps as InertiaPageProps } from '@inertiajs/core';
+import { PageProps as InertiaPageProps, router } from '@inertiajs/core';
 import {
     Table,
     TableBody,
@@ -21,6 +21,9 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '/users',
     },
 ];
+
+
+
 interface Users {
     id: number,
     name: string,
@@ -37,6 +40,19 @@ interface PageProps extends InertiaPageProps {
 
 export default function Index() {
     const { users, flash } = usePage<PageProps>().props;
+    const { processing, delete: destroy } = useForm();
+    const handleDelete = (id: number, name: string) => {
+        if (confirm(`Do you want to delete user ${id}. ${name}?`)) {
+            router.delete(`/users/${id}`, {
+                onSuccess: () => {
+                    console.log('User deleted successfully.');
+                },
+                onError: (errors) => {
+                    console.error(errors);
+                },
+            });
+        }
+    };
 
 
     return (
@@ -76,7 +92,9 @@ export default function Index() {
                                     <TableCell className="font-medium">{user.id}</TableCell>
                                     <TableCell>{user.name}</TableCell>
                                     <TableCell>{user.email}</TableCell>
-                                    <TableCell className="text-right"></TableCell>
+                                    <TableCell className="text-center">
+                                        <Button disabled={processing} onClick={() => handleDelete(user.id, user.name)} className='bg-red-500 hover:bg-red-700'>Delete</Button>
+                                    </TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
