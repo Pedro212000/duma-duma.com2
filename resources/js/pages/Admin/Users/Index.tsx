@@ -77,7 +77,7 @@ export default function Index() {
             {users.length > 0 && (
                 <div className='m-4'>
                     <Table>
-                        <TableCaption>A list of your recent invoices.</TableCaption>
+                        <TableCaption>A list of Users.</TableCaption>
                         <TableHeader>
                             <TableRow>
                                 <TableHead className="w-[100px]">ID</TableHead>
@@ -92,12 +92,27 @@ export default function Index() {
                                     <TableCell className="font-medium">{user.id}</TableCell>
                                     <TableCell>{user.name}</TableCell>
                                     <TableCell>{user.email}</TableCell>
-                                    <TableCell className="text-center space-x-2">
-                                        <Button className="bg-slate-600 hover:bg-slate-700 text-white">
-                                            <Link href={`/users/${user.id}/edit`}>Update</Link>
-                                        </Button>
-                                        <Button disabled={processing} onClick={() => handleDelete(user.id, user.name)} className='bg-red-500 hover:bg-red-700'>Delete</Button>
+                                    <TableCell className="text-center">
+                                        <div className="flex flex-wrap justify-center gap-2">
+                                            {/* ✅ flex-wrap + gap-2 makes buttons wrap nicely on small screens */}
+
+                                            <Link href={`/users/${user.id}/edit`} className="w-full sm:w-auto">
+                                                {/* ✅ full width on mobile, auto width on larger screens */}
+                                                <Button className="w-full sm:w-auto bg-slate-600 hover:bg-slate-700 text-white">
+                                                    Update
+                                                </Button>
+                                            </Link>
+
+                                            <Button
+                                                disabled={processing}
+                                                onClick={() => handleDelete(user.id, user.name)}
+                                                className="w-full sm:w-auto bg-red-500 hover:bg-red-700 text-white"
+                                            >
+                                                Delete
+                                            </Button>
+                                        </div>
                                     </TableCell>
+
                                 </TableRow>
                             ))}
                         </TableBody>

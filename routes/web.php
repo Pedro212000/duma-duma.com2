@@ -30,6 +30,7 @@ Route::middleware(['auth', 'verified', 'roleManager:admin'])->group(function () 
 
     Route::resource('users', UserController::class);
     Route::delete('/users/{user}', [UserController::class, "destroy"])->name('users.destroy');
+    Route::put('/users/{user}', [UserController::class, "update"])->name('users.update');
 });
 
 // Publisher Route
