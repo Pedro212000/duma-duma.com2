@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -29,6 +30,7 @@ Route::middleware(['auth', 'verified', 'roleManager:admin'])->group(function () 
     })->name('admin.dashboard');
 
     Route::resource('users', UserController::class);
+    Route::resource('products', controller: ProductController::class);
     Route::delete('/users/{user}', [UserController::class, "destroy"])->name('users.destroy');
     Route::put('/users/{user}', [UserController::class, "update"])->name('users.update');
 });

@@ -44,6 +44,7 @@ const sidebarConfig: Record<string, NavItem[]> = {
         { title: 'Dashboard', href: '/admin/dashboard', icon: LayoutGrid },
         { title: 'Users', href: '/users', icon: Users },
         { title: 'Settings', href: '/settings', icon: Settings },
+        { title: 'Products', href: '/products', icon: Users },
     ],
     publisher: [
         { title: 'Dashboard', href: 'publisher/dashboard', icon: LayoutGrid },
