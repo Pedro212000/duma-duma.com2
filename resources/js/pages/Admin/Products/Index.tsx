@@ -40,9 +40,5 @@ interface PageProps extends InertiaPageProps {
 
 export default function Index() {
 
-    return (
-        <AppLayout breadcrumbs={breadcrumbs}>
 
-        </AppLayout>
-    );
 }
