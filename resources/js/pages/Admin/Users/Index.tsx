@@ -92,7 +92,10 @@ export default function Index() {
                                     <TableCell className="font-medium">{user.id}</TableCell>
                                     <TableCell>{user.name}</TableCell>
                                     <TableCell>{user.email}</TableCell>
-                                    <TableCell className="text-center">
+                                    <TableCell className="text-center space-x-2">
+                                        <Button className="bg-slate-600 hover:bg-slate-700 text-white">
+                                            <Link href={`/users/${user.id}/edit`}>Update</Link>
+                                        </Button>
                                         <Button disabled={processing} onClick={() => handleDelete(user.id, user.name)} className='bg-red-500 hover:bg-red-700'>Delete</Button>
                                     </TableCell>
                                 </TableRow>
