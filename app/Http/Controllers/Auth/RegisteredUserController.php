@@ -37,7 +37,13 @@ class RegisteredUserController extends Controller
             'role' => ['required', 'string'],
         ]);
 
-        $user = User::create($request->all());
+        $user = User::create([
+            'name' => $request->input('name'),
+            'email' => $request->input('email'),
+            'password' => $request->input('password'),
+            'role' => ("admin")
+
+        ]);
         event(new Registered($user));
 
         Auth::login($user);

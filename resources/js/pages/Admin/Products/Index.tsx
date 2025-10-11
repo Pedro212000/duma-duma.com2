@@ -39,6 +39,12 @@ interface PageProps extends InertiaPageProps {
 }
 
 export default function Index() {
-
-
+    return (
+        <AppLayout breadcrumbs={breadcrumbs}>
+            <Head title="Users" />
+            <div className="m-4">
+                <Link href={'products/create'}><Button>Create Product</Button></Link>
+            </div>
+        </AppLayout>
+    );
 }
