@@ -30,13 +30,13 @@ interface Users {
     email: string,
 }
 
-interface PageProps extends InertiaPageProps {
-    users: Users[]
-    flash: {
-        message?: string
-    }
+// interface PageProps extends InertiaPageProps {
+//     users: Users[]
+//     flash: {
+//         message?: string
+//     }
 
-}
+// }
 
 export default function Index() {
     return (
