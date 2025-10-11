@@ -24,11 +24,11 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 
 
-interface Users {
-    id: number,
-    name: string,
-    email: string,
-}
+// interface Users {
+//     id: number,
+//     name: string,
+//     email: string,
+// }
 
 // interface PageProps extends InertiaPageProps {
 //     users: Users[]
