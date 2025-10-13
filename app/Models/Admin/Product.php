@@ -9,9 +9,6 @@ class Product extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     */
     protected $fillable = [
         'name',
         'location',
@@ -19,10 +16,18 @@ class Product extends Model
         'images',
     ];
 
-    /**
-     * The attributes that should be cast.
-     */
     protected $casts = [
         'images' => 'array', // store/retrieve images as array from JSON column
     ];
+
+    public function getPictureUrlAttribute()
+    {
+        // Get first image from the images array or a single image string
+        $path = is_array($this->images) ? $this->images[0] : $this->images;
+
+        // Return public URL
+        return $path
+            ? asset('storage/' . $path)
+            : asset('images/no-image.png'); // fallback
+    }
 }

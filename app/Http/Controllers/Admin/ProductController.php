@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Http\Controllers\Admin;
-
 use App\Http\Controllers\Controller;
 use App\Models\Admin\Product;
 use Illuminate\Http\Request;
@@ -14,7 +13,18 @@ class ProductController extends Controller
      */
     public function index()
     {
-        return Inertia::render('Admin/Products/Index');
+        $products = Product::all()->map(function ($product) {
+            return [
+                'id' => $product->id,
+                'name' => $product->name,
+                'description' => $product->description,
+                'picture_url' => $product->picture_url, // ✅ include accessor
+            ];
+        });
+
+        return Inertia::render('Products/Index', [
+            'products' => $products,
+        ]);
     }
 
     /**
