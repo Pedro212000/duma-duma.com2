@@ -18,11 +18,12 @@ class ProductController extends Controller
                 'id' => $product->id,
                 'name' => $product->name,
                 'description' => $product->description,
-                'picture_url' => $product->picture_url, // ✅ include accessor
+                'images' => $product->images, // ✅ include this line
+                'picture_url' => $product->picture_url, // ✅ still include accessor
             ];
         });
 
-        return Inertia::render('Products/Index', [
+        return Inertia::render('Admin/Products/Index', [
             'products' => $products,
         ]);
     }

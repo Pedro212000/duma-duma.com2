@@ -15,7 +15,7 @@ interface Product {
     id: number;
     name: string;
     description: string;
-    picture: string | string[] | null;
+    images: string | string[] | null;
     picture_url?: string;
 }
 
@@ -69,21 +69,104 @@ export default function Index() {
                                     <TableCell className="font-medium">{product.id}</TableCell>
                                     <TableCell>{product.name}</TableCell>
                                     <TableCell>{product.description}</TableCell>
-                                    <TableCell>
-                                        <img
-                                            src={`/storage/products/${product.picture}`}
-                                            alt={product.name}
-                                            className="w-16 h-16 object-cover rounded"
-                                        />
+                                    {/* Replace your current TableCell image block with this */}
+                                    <TableCell className="text-center">
+                                        <div className="flex flex-col items-center gap-2">
+                                            <div className="flex flex-wrap justify-center gap-2">
+                                                {(() => {
+                                                    // Debug info: show raw value in console
+                                                    console.log('RAW product.images for id', product.id, ':', product.images);
+
+                                                    let images: string[] = [];
+
+                                                    try {
+                                                        // If it's already an array (from props), use it
+                                                        if (Array.isArray(product.images)) {
+                                                            images = product.images;
+                                                        } else if (typeof product.images === 'string') {
+                                                            const raw = product.images.trim();
+
+                                                            // If it looks like a JSON array, parse it
+                                                            if (raw.startsWith('[') && raw.endsWith(']')) {
+                                                                try {
+                                                                    images = JSON.parse(raw);
+                                                                } catch (err) {
+                                                                    console.warn('JSON.parse failed for product.images', product.id, err);
+                                                                    images = [];
+                                                                }
+                                                            } else if (raw !== '') {
+                                                                // It's a single path string (not JSON array)
+                                                                images = [raw];
+                                                            } else {
+                                                                images = [];
+                                                            }
+                                                        } else {
+                                                            images = [];
+                                                        }
+                                                    } catch (err) {
+                                                        console.error('Error parsing images for product', product.id, err);
+                                                        images = [];
+                                                    }
+
+                                                    // Debug: show parsed images in console
+                                                    console.log('PARSED images for id', product.id, images);
+
+                                                    // If still empty, show fallback
+                                                    if (images.length === 0) {
+                                                        return (
+                                                            <img
+                                                                src="/no-image.png"
+                                                                alt="No image"
+                                                                className="w-16 h-16 object-cover rounded border border-gray-300"
+                                                            />
+                                                        );
+                                                    }
+
+                                                    // Render all images
+                                                    return images.map((imgUrl: string, index: number) => {
+                                                        // normalize (trim) the path
+                                                        const path = imgUrl ? imgUrl.trim() : '';
+                                                        // if the DB contains "products/..." then we want /storage/products/...
+                                                        const src = path ? `/storage/${path}` : '/no-image.png';
+
+                                                        return (
+                                                            <img
+                                                                key={`${product.id}-${index}`}
+                                                                src={src}
+                                                                alt={`${product.name || 'Product'} ${index + 1}`}
+                                                                className="w-16 h-16 object-cover rounded border border-gray-300"
+                                                                onError={(e) => {
+                                                                    e.currentTarget.onerror = null; // prevent loop
+                                                                    e.currentTarget.src = '/no-image.png';
+                                                                }}
+                                                            />
+                                                        );
+                                                    });
+                                                })()}
+                                            </div>
+
+                                            {/* Small debug text so you can see number of images per product in UI */}
+                                            <div className="text-xs text-gray-500 mt-1">
+                                                {(() => {
+                                                    try {
+                                                        let count = 0;
+                                                        if (Array.isArray(product.images)) count = product.images.length;
+                                                        else if (typeof product.images === 'string' && product.images.trim().startsWith('[')) {
+                                                            count = JSON.parse(product.images || '[]').length;
+                                                        } else if (typeof product.images === 'string' && product.images.trim() !== '') {
+                                                            count = 1;
+                                                        }
+                                                        return `${count} image(s)`;
+                                                    } catch {
+                                                        return '0 image(s)';
+                                                    }
+                                                })()}
+                                            </div>
+                                        </div>
                                     </TableCell>
-                                    <TableCell>
-                                        <img
-                                            src={product.picture_url}
-                                            alt={product.name}
-                                            className="w-16 h-16 object-cover rounded border border-gray-300"
-                                            onError={(e) => (e.currentTarget.src = '/images/no-image.png')} // fallback
-                                        />
-                                    </TableCell>
+
+
+
 
                                     <TableCell className="text-center">
                                         <div className="flex flex-wrap justify-center gap-2">
