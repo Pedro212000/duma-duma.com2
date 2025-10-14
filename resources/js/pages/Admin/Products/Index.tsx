@@ -29,7 +29,6 @@ interface PageProps {
 
 export default function Index() {
     const { products, flash } = usePage<PageProps>().props;
-    const { processing } = useForm();
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -164,10 +163,6 @@ export default function Index() {
                                             </div>
                                         </div>
                                     </TableCell>
-
-
-
-
                                     <TableCell className="text-center">
                                         <div className="flex flex-wrap justify-center gap-2">
                                             <Link href={`/products/${product.id}/edit`}>
