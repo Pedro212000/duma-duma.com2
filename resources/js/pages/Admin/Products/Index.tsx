@@ -221,7 +221,7 @@ export default function Index() {
                                                     } else {
                                                         Swal.fire("Error", "Failed to delete image.", "error");
                                                     }
-                                                } catch (err) {
+                                                } catch {
                                                     Swal.fire("Error", "Something went wrong.", "error");
                                                 }
                                             }
