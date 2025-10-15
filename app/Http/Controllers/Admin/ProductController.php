@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Admin\Product;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -74,6 +75,35 @@ class ProductController extends Controller
             ->route('products.index')
             ->with('success', 'Product created successfully!');
     }
+
+    public function deleteImage(Request $request, Product $product)
+    {
+        $imagePath = $request->input('image');
+
+        // ✅ Safely normalize $images
+        $images = $product->images;
+        if (is_string($images)) {
+            $decoded = json_decode($images, true);
+            $images = is_array($decoded) ? $decoded : [];
+        } elseif (!is_array($images)) {
+            $images = [];
+        }
+
+        // ✅ Filter out the deleted image
+        $updatedImages = array_values(array_filter($images, fn($img) => $img !== $imagePath));
+
+        // ✅ Save updated images
+        $product->images = json_encode($updatedImages);
+        $product->save();
+
+        // ✅ Delete file if it exists
+        if (\Storage::disk('public')->exists($imagePath)) {
+            \Storage::disk('public')->delete($imagePath);
+        }
+
+        return response()->json(['message' => 'Image deleted successfully']);
+    }
+
 
     /**
      * Display the specified resource.

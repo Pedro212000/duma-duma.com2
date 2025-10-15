@@ -1,4 +1,5 @@
 import '../css/app.css';
+import axios from "axios";
 
 import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
@@ -22,3 +23,16 @@ createInertiaApp({
 
 // This will set light / dark mode on load...
 initializeTheme();
+
+// ✅ Attach Laravel's CSRF token to all Axios requests
+axios.defaults.headers.common["X-Requested-With"] = "XMLHttpRequest";
+
+const token = document
+    .querySelector('meta[name="csrf-token"]')
+    ?.getAttribute("content");
+
+if (token) {
+    axios.defaults.headers.common["X-CSRF-TOKEN"] = token;
+} else {
+    console.error("❌ CSRF token not found — check your <head> tag in app.blade.php");
+}

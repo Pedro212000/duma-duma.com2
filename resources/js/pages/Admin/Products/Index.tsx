@@ -1,14 +1,14 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Button } from '@/components/ui/button';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import React, { useState } from "react";
+import Swal from 'sweetalert2';
+
 
 const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Products',
-        href: '/products',
-    },
+    { title: 'Products', href: '/products' },
 ];
 
 interface Product {
@@ -21,14 +21,34 @@ interface Product {
 
 interface PageProps {
     products: Product[];
-    flash: {
-        message?: string;
-    };
+    flash: { message?: string };
     [key: string]: unknown;
 }
 
 export default function Index() {
     const { products, flash } = usePage<PageProps>().props;
+    const [activeProduct, setActiveProduct] = useState<Product | null>(null);
+
+    // 🔧 Utility to normalize image path
+    const getSrc = (imgUrl: string) => {
+        const path = imgUrl ? imgUrl.trim() : "";
+        return path ? `/storage/${path}` : "/no-image.png";
+    };
+
+    // 🔧 Parse images from mixed data types
+    const parseImages = (data: string | string[] | null): string[] => {
+        try {
+            if (Array.isArray(data)) return data;
+            if (typeof data === "string") {
+                const raw = data.trim();
+                if (raw.startsWith("[") && raw.endsWith("]")) return JSON.parse(raw);
+                if (raw !== "") return [raw];
+            }
+        } catch {
+            console.warn("Error parsing images");
+        }
+        return [];
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -63,126 +83,169 @@ export default function Index() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {products.map((product) => (
-                                <TableRow key={product.id}>
-                                    <TableCell className="font-medium">{product.id}</TableCell>
-                                    <TableCell>{product.name}</TableCell>
-                                    <TableCell>{product.description}</TableCell>
-                                    {/* Replace your current TableCell image block with this */}
-                                    <TableCell className="text-center">
-                                        <div className="flex flex-col items-center gap-2">
+                            {products.map((product) => {
+                                const images = parseImages(product.images);
+                                const count = images.length;
+
+                                return (
+                                    <TableRow key={product.id}>
+                                        <TableCell className="font-medium">{product.id}</TableCell>
+                                        <TableCell>{product.name}</TableCell>
+                                        <TableCell>{product.description}</TableCell>
+
+                                        {/* ✅ Single clickable image */}
+                                        <TableCell className="text-center">
+                                            <div className="flex flex-col items-center gap-2">
+                                                {count > 0 ? (
+                                                    <img
+                                                        src={getSrc(images[0])}
+                                                        alt={`${product.name || "Product"} 1`}
+                                                        className="w-16 h-16 object-cover rounded border border-gray-300 cursor-pointer hover:opacity-80"
+                                                        onClick={() => setActiveProduct(product)}
+                                                        onError={(e) => {
+                                                            e.currentTarget.onerror = null;
+                                                            e.currentTarget.src = "/no-image.png";
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <img
+                                                        src="/no-image.png"
+                                                        alt="No image"
+                                                        className="w-16 h-16 object-cover rounded border border-gray-300"
+                                                    />
+                                                )}
+
+                                                <div className="text-xs text-gray-500 mt-1">
+                                                    {count} image(s)
+                                                </div>
+                                            </div>
+                                        </TableCell>
+
+                                        {/* Actions */}
+                                        <TableCell className="text-center">
                                             <div className="flex flex-wrap justify-center gap-2">
-                                                {(() => {
-                                                    // Debug info: show raw value in console
-                                                    console.log('RAW product.images for id', product.id, ':', product.images);
-
-                                                    let images: string[] = [];
-
-                                                    try {
-                                                        // If it's already an array (from props), use it
-                                                        if (Array.isArray(product.images)) {
-                                                            images = product.images;
-                                                        } else if (typeof product.images === 'string') {
-                                                            const raw = product.images.trim();
-
-                                                            // If it looks like a JSON array, parse it
-                                                            if (raw.startsWith('[') && raw.endsWith(']')) {
-                                                                try {
-                                                                    images = JSON.parse(raw);
-                                                                } catch (err) {
-                                                                    console.warn('JSON.parse failed for product.images', product.id, err);
-                                                                    images = [];
-                                                                }
-                                                            } else if (raw !== '') {
-                                                                // It's a single path string (not JSON array)
-                                                                images = [raw];
-                                                            } else {
-                                                                images = [];
-                                                            }
-                                                        } else {
-                                                            images = [];
-                                                        }
-                                                    } catch (err) {
-                                                        console.error('Error parsing images for product', product.id, err);
-                                                        images = [];
-                                                    }
-
-                                                    // Debug: show parsed images in console
-                                                    console.log('PARSED images for id', product.id, images);
-
-                                                    // If still empty, show fallback
-                                                    if (images.length === 0) {
-                                                        return (
-                                                            <img
-                                                                src="/no-image.png"
-                                                                alt="No image"
-                                                                className="w-16 h-16 object-cover rounded border border-gray-300"
-                                                            />
-                                                        );
-                                                    }
-
-                                                    // Render all images
-                                                    return images.map((imgUrl: string, index: number) => {
-                                                        // normalize (trim) the path
-                                                        const path = imgUrl ? imgUrl.trim() : '';
-                                                        // if the DB contains "products/..." then we want /storage/products/...
-                                                        const src = path ? `/storage/${path}` : '/no-image.png';
-
-                                                        return (
-                                                            <img
-                                                                key={`${product.id}-${index}`}
-                                                                src={src}
-                                                                alt={`${product.name || 'Product'} ${index + 1}`}
-                                                                className="w-16 h-16 object-cover rounded border border-gray-300"
-                                                                onError={(e) => {
-                                                                    e.currentTarget.onerror = null; // prevent loop
-                                                                    e.currentTarget.src = '/no-image.png';
-                                                                }}
-                                                            />
-                                                        );
-                                                    });
-                                                })()}
+                                                <Link href={`/products/${product.id}/edit`}>
+                                                    <Button className="bg-slate-600 hover:bg-slate-700 text-white">
+                                                        Update
+                                                    </Button>
+                                                </Link>
+                                                <Button variant="destructive">Delete</Button>
                                             </div>
-
-                                            {/* Small debug text so you can see number of images per product in UI */}
-                                            <div className="text-xs text-gray-500 mt-1">
-                                                {(() => {
-                                                    try {
-                                                        let count = 0;
-                                                        if (Array.isArray(product.images)) count = product.images.length;
-                                                        else if (typeof product.images === 'string' && product.images.trim().startsWith('[')) {
-                                                            count = JSON.parse(product.images || '[]').length;
-                                                        } else if (typeof product.images === 'string' && product.images.trim() !== '') {
-                                                            count = 1;
-                                                        }
-                                                        return `${count} image(s)`;
-                                                    } catch {
-                                                        return '0 image(s)';
-                                                    }
-                                                })()}
-                                            </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="text-center">
-                                        <div className="flex flex-wrap justify-center gap-2">
-                                            <Link href={`/products/${product.id}/edit`}>
-                                                <Button className="bg-slate-600 hover:bg-slate-700 text-white">
-                                                    Update
-                                                </Button>
-                                            </Link>
-                                            <Button variant="destructive">
-                                                Delete
-                                            </Button>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })}
                         </TableBody>
                     </Table>
                 </div>
             ) : (
                 <p className="text-center text-gray-500 mt-6">No products found.</p>
             )}
+
+            {/* ✅ Scrollable Modal */}
+            {activeProduct && (
+                <div
+                    className="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
+                    onClick={() => setActiveProduct(null)}
+                >
+                    <div
+                        className="bg-white p-6 rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-xl font-semibold mb-4 text-center">
+                            {activeProduct.name || "Product Images"}
+                        </h3>
+
+                        {/* ✅ One-column layout with delete button per image */}
+                        <div className="flex flex-col items-center gap-6">
+                            {parseImages(activeProduct.images).map((imgUrl, index) => (
+                                <div
+                                    key={`${activeProduct.id}-${index}`}
+                                    className="relative flex flex-col items-center"
+                                >
+                                    <img
+                                        src={getSrc(imgUrl)}
+                                        alt={`${activeProduct.name || "Product"} ${index + 1}`}
+                                        className="w-full max-w-[600px] h-auto object-contain rounded-lg border border-gray-300 shadow-sm"
+                                        onError={(e) => {
+                                            e.currentTarget.onerror = null;
+                                            e.currentTarget.src = "/no-image.png";
+                                        }}
+                                    />
+
+                                    {/* ❌ Delete Button */}
+                                    <button
+                                        className="absolute top-2 right-2 bg-red-600 text-white px-3 py-1 text-sm rounded hover:bg-red-700 shadow-md"
+                                        onClick={async () => {
+                                            const swalResult = await Swal.fire({
+                                                title: "Delete Image?",
+                                                text: "Are you sure you want to delete this picture?",
+                                                icon: "warning",
+                                                showCancelButton: true,
+                                                confirmButtonColor: "#d33",
+                                                cancelButtonColor: "#3085d6",
+                                                confirmButtonText: "Yes, delete it!",
+                                            });
+
+                                            if (swalResult.isConfirmed) {
+                                                try {
+                                                    // 🧠 Adjust endpoint as needed (example: /products/:id/image-delete)
+                                                    const response = await fetch(
+                                                        `/products/${activeProduct.id}/delete-image`,
+                                                        {
+                                                            method: "POST",
+                                                            headers: {
+                                                                "Content-Type": "application/json",
+                                                                "X-CSRF-TOKEN": (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || "",
+                                                            },
+                                                            body: JSON.stringify({ image: imgUrl }),
+                                                        }
+                                                    );
+
+                                                    if (response.ok) {
+                                                        Swal.fire({
+                                                            icon: "success",
+                                                            title: "Deleted!",
+                                                            text: "Image has been removed.",
+                                                            timer: 1500,
+                                                            showConfirmButton: false,
+                                                        });
+
+                                                        // ✅ Update UI after delete
+                                                        setActiveProduct({
+                                                            ...activeProduct,
+                                                            images: parseImages(activeProduct.images).filter(
+                                                                (i) => i !== imgUrl
+                                                            ),
+                                                        });
+                                                    } else {
+                                                        Swal.fire("Error", "Failed to delete image.", "error");
+                                                    }
+                                                } catch (err) {
+                                                    Swal.fire("Error", "Something went wrong.", "error");
+                                                }
+                                            }
+                                        }}
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="mt-6 flex justify-center">
+                            <button
+                                className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                                onClick={() => setActiveProduct(null)}
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+
         </AppLayout>
     );
 }

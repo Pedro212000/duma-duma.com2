@@ -33,6 +33,9 @@ Route::middleware(['auth', 'verified', 'roleManager:admin'])->group(function () 
     Route::resource('products', controller: ProductController::class);
     Route::delete('/users/{user}', [UserController::class, "destroy"])->name('users.destroy');
     Route::put('/users/{user}', [UserController::class, "update"])->name('users.update');
+    Route::post('/products/{product}/delete-image', [ProductController::class, 'deleteImage']);
+
+
 });
 
 // Publisher Route
