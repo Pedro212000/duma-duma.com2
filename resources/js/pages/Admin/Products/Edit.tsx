@@ -32,7 +32,7 @@ interface ProductForm extends Product {
     images: File[]; // ✅ used for new image uploads
 }
 export default function UpdateProduct({ product }: Props) {
-    const { data, setData, put, errors, reset } = useForm<ProductForm>({
+    const { data, setData, put, errors } = useForm<ProductForm>({
         name: product.name || '',
         location: product.location || '',
         description: product.description || '',
