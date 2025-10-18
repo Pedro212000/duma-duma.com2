@@ -30,10 +30,12 @@ Route::middleware(['auth', 'verified', 'roleManager:admin'])->group(function () 
     })->name('admin.dashboard');
 
     Route::resource('users', UserController::class);
-    Route::resource('products', controller: ProductController::class);
     Route::delete('/users/{user}', [UserController::class, "destroy"])->name('users.destroy');
     Route::put('/users/{user}', [UserController::class, "update"])->name('users.update');
+
+    Route::resource('products', controller: ProductController::class);
     Route::post('/products/{product}/delete-image', [ProductController::class, 'deleteImage']);
+    Route::put('/products/{product}', [ProductController::class, "update"])->name('products.update');
 
 
 });
