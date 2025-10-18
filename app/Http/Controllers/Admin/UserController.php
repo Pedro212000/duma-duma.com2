@@ -76,7 +76,7 @@ class UserController extends Controller
             'password' => $request->input('password'),
             'role' => $request->input('role')
         ]);
-        return redirect()->route('users.index')->with('message', 'User Created Successfully');
+        return redirect()->route('users.index')->with('message', 'User Updated Successfully');
     }
 
     /**

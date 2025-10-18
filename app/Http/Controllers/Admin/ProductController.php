@@ -18,9 +18,10 @@ class ProductController extends Controller
             return [
                 'id' => $product->id,
                 'name' => $product->name,
+                'location' => $product->location,
                 'description' => $product->description,
-                'images' => $product->images, // ✅ include this line
-                'picture_url' => $product->picture_url, // ✅ still include accessor
+                'images' => $product->images,
+                'picture_url' => $product->picture_url,
             ];
         });
 
@@ -124,9 +125,20 @@ class ProductController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Product $product)
     {
-        //
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'location' => 'required|string|max:255',
+            'description' => 'required|string|max:255',
+        ]);
+
+        $product->update([
+            'name' => $request->input('name'),
+            'location' => $request->input('location'),
+            'description' => $request->input('description'),
+        ]);
+        return redirect()->route('products.index')->with('message', 'Product Updated Successfully');
     }
 
     /**

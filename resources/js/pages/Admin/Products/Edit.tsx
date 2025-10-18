@@ -40,7 +40,7 @@ export default function UpdateProduct({ product }: Props) {
     });
     const handleUpdate = (e: React.FormEvent) => {
         e.preventDefault();
-        put(route('users.update', product.id));
+        put(route('products.update', product.id));
     };
 
 
@@ -135,9 +135,17 @@ export default function UpdateProduct({ product }: Props) {
 
 
                     {/* ✅ Submit */}
-                    <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">
-                        Add Product
-                    </Button>
+                    <div className="flex flex-wrap justify-start gap-2">
+                        {/* ✅ justify-start aligns button to the left */}
+
+                        <Button
+                            type="submit"
+                            className="w-full sm:w-auto bg-black hover:bg-gray-900 text-white"
+                        // ✅ changed color to black with dark gray hover
+                        >
+                            Update Product
+                        </Button>
+                    </div>
                 </form>
             </div>
         </AppLayout>

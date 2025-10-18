@@ -15,6 +15,7 @@ interface Product {
     id: number;
     name: string;
     description: string;
+    location: string;
     images: string | string[] | null;
     picture_url?: string;
 }
@@ -77,6 +78,7 @@ export default function Index() {
                             <TableRow>
                                 <TableHead className="w-[100px]">ID</TableHead>
                                 <TableHead>Name</TableHead>
+                                <TableHead>Location</TableHead>
                                 <TableHead>Description</TableHead>
                                 <TableHead>Picture</TableHead>
                                 <TableHead className="text-center">Action</TableHead>
@@ -91,6 +93,7 @@ export default function Index() {
                                     <TableRow key={product.id}>
                                         <TableCell className="font-medium">{product.id}</TableCell>
                                         <TableCell>{product.name}</TableCell>
+                                        <TableCell>{product.location}</TableCell>
                                         <TableCell>{product.description}</TableCell>
 
                                         {/* ✅ Single clickable image */}
