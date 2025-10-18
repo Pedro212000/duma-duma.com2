@@ -131,15 +131,33 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'location' => 'required|string|max:255',
             'description' => 'required|string|max:255',
+            'existingImages' => 'nullable|array',
+            'images.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
+        // Start with the existing images (kept ones)
+        $updatedImages = $request->existingImages ?? [];
+
+        // Handle newly uploaded images
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $file) {
+                $path = $file->store('uploads/products', 'public'); // store in storage/app/public/uploads/products
+                $updatedImages[] = 'storage/' . $path; // full path to access via URL
+            }
+        }
+
+        // Save updates
         $product->update([
             'name' => $request->input('name'),
             'location' => $request->input('location'),
             'description' => $request->input('description'),
+            'images' => json_encode($updatedImages), // store array as JSON
         ]);
-        return redirect()->route('products.index')->with('message', 'Product Updated Successfully');
+
+        return redirect()->route('products.index')
+            ->with('message', 'Product Updated Successfully');
     }
+
 
     /**
      * Remove the specified resource from storage.
