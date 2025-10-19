@@ -34,5 +34,5 @@ const token = document
 if (token) {
     axios.defaults.headers.common["X-CSRF-TOKEN"] = token;
 } else {
-    console.error("❌ CSRF token not found — check your <head> tag in app.blade.php");
+
 }
