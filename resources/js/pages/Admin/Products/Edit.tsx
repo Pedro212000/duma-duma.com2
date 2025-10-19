@@ -39,30 +39,13 @@ export default function UpdateProduct({ product }: Props) {
     });
 
     const [existingImages, setExistingImages] = useState<string[]>(() => {
-        let imgs: string[] = [];
-
-        // If product.images is already an array
-        if (Array.isArray(product.images)) {
-            imgs = product.images;
-        }
-        // If it's a JSON string (common from Laravel)
-        else if (typeof product.images === "string") {
-            try {
-                imgs = JSON.parse(product.images);
-            } catch (error) {
-                console.warn("Failed to parse product.images:", error);
-                imgs = [];
-            }
-        }
-        // Otherwise, leave it empty
-        else {
-            imgs = [];
-        }
-
-        // Make sure each image has correct path
-        return imgs.map((img: string) =>
-            img.startsWith("http") ? img : `/storage/${img}`
-        );
+        if (!Array.isArray(product.images)) return [];
+        return product.images.map((img: string) => {
+            const cleaned = img.replace(/(\/storage\/)+/g, "/storage/");
+            if (cleaned.startsWith("http")) return cleaned;
+            if (cleaned.includes("/storage/")) return cleaned;
+            return `/storage/${cleaned}`;
+        });
     });
 
     const [previewImage, setPreviewImage] = useState<string | null>(null);

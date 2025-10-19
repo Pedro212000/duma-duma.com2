@@ -119,8 +119,30 @@ class ProductController extends Controller
      */
     public function edit(Product $product)
     {
-        return Inertia::render('Admin/Products/Edit', ['product' => $product]);
+        $images = [];
+
+        if (is_array($product->images)) {
+            // Already an array — use directly
+            $images = $product->images;
+        } elseif (is_string($product->images)) {
+            // JSON string — decode safely
+            $decoded = json_decode($product->images, true);
+            $images = is_array($decoded) ? $decoded : [];
+        }
+
+        return Inertia::render('Admin/Products/Edit', [
+            'product' => [
+                'id' => $product->id,
+                'name' => $product->name,
+                'location' => $product->location,
+                'description' => $product->description,
+                'images' => $images,
+            ],
+        ]);
     }
+
+
+
 
     /**
      * Update the specified resource in storage.
