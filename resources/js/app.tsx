@@ -33,6 +33,4 @@ const token = document
 
 if (token) {
     axios.defaults.headers.common["X-CSRF-TOKEN"] = token;
-} else {
-
-}
+} 

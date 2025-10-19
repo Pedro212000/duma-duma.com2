@@ -6,7 +6,6 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 import React, { useState } from "react";
 import Swal from 'sweetalert2';
 
-
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Products', href: '/products' },
 ];
@@ -30,20 +29,24 @@ export default function Index() {
     const { products, flash } = usePage<PageProps>().props;
     const [activeProduct, setActiveProduct] = useState<Product | null>(null);
 
-    // 🔧 Utility to normalize image path
-    const getSrc = (imgUrl: string) => {
-        const path = imgUrl ? imgUrl.trim() : "";
-        return path ? `/storage/${path}` : "/no-image.png";
+    // ✅ Utility to fix repeated /storage/ paths
+    const normalizeStoragePath = (url: string): string => {
+        if (!url) return '/no-image.png';
+        // Remove duplicated "storage/" parts
+        let clean = url.replace(/(\/?storage\/)+/g, 'storage/');
+        // Prepend only once
+        if (!clean.startsWith('/storage/')) clean = '/storage/' + clean;
+        return clean;
     };
 
-    // 🔧 Parse images from mixed data types
+    // ✅ Parse images safely (handles JSON or plain string)
     const parseImages = (data: string | string[] | null): string[] => {
         try {
             if (Array.isArray(data)) return data;
-            if (typeof data === "string") {
+            if (typeof data === "string" && data.trim() !== "") {
                 const raw = data.trim();
                 if (raw.startsWith("[") && raw.endsWith("]")) return JSON.parse(raw);
-                if (raw !== "") return [raw];
+                return [raw];
             }
         } catch {
             console.warn("Error parsing images");
@@ -101,7 +104,7 @@ export default function Index() {
                                             <div className="flex flex-col items-center gap-2">
                                                 {count > 0 ? (
                                                     <img
-                                                        src={getSrc(images[0])}
+                                                        src={normalizeStoragePath(images[0])}
                                                         alt={`${product.name || "Product"} 1`}
                                                         className="w-16 h-16 object-cover rounded border border-gray-300 cursor-pointer hover:opacity-80"
                                                         onClick={() => setActiveProduct(product)}
@@ -167,7 +170,7 @@ export default function Index() {
                                     className="relative flex flex-col items-center"
                                 >
                                     <img
-                                        src={getSrc(imgUrl)}
+                                        src={normalizeStoragePath(imgUrl)}
                                         alt={`${activeProduct.name || "Product"} ${index + 1}`}
                                         className="w-full max-w-[600px] h-auto object-contain rounded-lg border border-gray-300 shadow-sm"
                                         onError={(e) => {
@@ -192,7 +195,6 @@ export default function Index() {
 
                                             if (swalResult.isConfirmed) {
                                                 try {
-                                                    // 🧠 Adjust endpoint as needed (example: /products/:id/image-delete)
                                                     const response = await fetch(
                                                         `/products/${activeProduct.id}/delete-image`,
                                                         {
@@ -214,7 +216,6 @@ export default function Index() {
                                                             showConfirmButton: false,
                                                         });
 
-                                                        // ✅ Update UI after delete
                                                         setActiveProduct({
                                                             ...activeProduct,
                                                             images: parseImages(activeProduct.images).filter(
@@ -247,8 +248,6 @@ export default function Index() {
                     </div>
                 </div>
             )}
-
-
         </AppLayout>
     );
 }

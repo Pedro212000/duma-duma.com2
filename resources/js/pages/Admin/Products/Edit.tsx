@@ -40,13 +40,23 @@ export default function UpdateProduct({ product }: Props) {
 
     const [existingImages, setExistingImages] = useState<string[]>(() => {
         if (!Array.isArray(product.images)) return [];
+
         return product.images.map((img: string) => {
-            const cleaned = img.replace(/(\/storage\/)+/g, "/storage/");
-            if (cleaned.startsWith("http")) return cleaned;
-            if (cleaned.includes("/storage/")) return cleaned;
+            if (!img) return '';
+
+            // ✅ If it's already a full URL (e.g., external image)
+            if (img.startsWith('http')) return img;
+
+            // ✅ Remove all leading slashes and any repeated "storage/" segments
+            let cleaned = img.replace(/^\/+/, '').replace(/^(storage\/)+/, '');
+
+            // ✅ Ensure exactly one /storage/ prefix
             return `/storage/${cleaned}`;
         });
     });
+
+
+
 
     const [previewImage, setPreviewImage] = useState<string | null>(null);
 
