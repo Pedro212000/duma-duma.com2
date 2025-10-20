@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin\Product;
+use App\Models\Admin\ProductImage;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
@@ -16,29 +17,39 @@ class ProductController extends Controller
      */
     public function index()
     {
-        // Map products so images are always an array and include picture_url (first image accessible URL)
-        $products = Product::all()->map(function ($product) {
-            $images = json_decode($product->images, true) ?? [];
+        $products = Product::with('images')->get()->map(function ($product) {
+            $imageData = $product->images->map(function ($image) {
+                $path = $image->image_path;
 
-            // Convert each stored path to a public URL
-            $imageUrls = array_map(function ($path) {
-                return asset('storage/' . $path);
-            }, $images);
+                // If the path already starts with http (external URL), return as-is
+                if (str_starts_with($path, 'http')) {
+                    return [
+                        'id' => $image->id,
+                        'image_path' => $path,
+                    ];
+                }
 
+                return [
+                    'id' => $image->id,
+                    'image_path' => asset('storage/' . $path),
+                ];
+            });
+
+            // ✅ Return each product with its transformed image data
             return [
                 'id' => $product->id,
                 'name' => $product->name,
                 'location' => $product->location,
                 'description' => $product->description,
-                'images' => $imageUrls,
+                'images' => $imageData,
             ];
         });
-
 
         return Inertia::render('Admin/Products/Index', [
             'products' => $products,
         ]);
     }
+
 
     /**
      * Show the form for creating a new resource.
@@ -68,21 +79,19 @@ class ProductController extends Controller
             'description' => $validated['description'],
         ]);
 
-        $uploadedPaths = [];
-
+        // Handle images
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
-                // store returns relative path like "uploads/products/xxx.png" (inside storage/app/public)
+                // Store the file and get the relative path
                 $path = $image->store('uploads/products', 'public');
-                $uploadedPaths[] = $path;
-            }
-        }
 
-        // Save images as JSON array (even if empty)
-        if (!empty($uploadedPaths)) {
-            $product->update(['images' => json_encode($uploadedPaths)]);
-        } else {
-            $product->update(['images' => json_encode([])]);
+
+                // Create a new ProductImage record for each uploaded file
+                ProductImage::create([
+                    'product_id' => $product->id,
+                    'image_path' => $path,
+                ]);
+            }
         }
 
         return redirect()
@@ -90,60 +99,37 @@ class ProductController extends Controller
             ->with('success', 'Product created successfully!');
     }
 
+
     /**
      * Delete single image from product (AJAX)
      */
-    public function deleteImage(Request $request, Product $product)
+
+    public function deleteImage(Request $request, $productId)
     {
-        $imagePathInput = $request->input('image'); // can be full url (/storage/...) or relative
+        try {
+            $imageId = $request->input('image_id');
 
-        // Normalize incoming image path to the relative storage path
-        if (empty($imagePathInput)) {
-            return response()->json(['message' => 'No image provided'], 422);
-        }
+            // 🧭 Find the image
+            $image = ProductImage::where('id', $imageId)
+                ->where('product_id', $productId)
+                ->first();
 
-        // Example incoming values:
-        // - "/storage/uploads/products/abc.png"
-        // - "http://127.0.0.1:8000/storage/uploads/products/abc.png"
-        // - "uploads/products/abc.png"
-        $relative = $imagePathInput;
-
-        // If it contains '/storage/', chop up to that point
-        if (strpos($imagePathInput, '/storage/') !== false) {
-            $relative = substr($imagePathInput, strpos($imagePathInput, '/storage/') + strlen('/storage/'));
-        } elseif (strpos($imagePathInput, 'storage/') !== false) {
-            // covers "storage/uploads/..."
-            $relative = substr($imagePathInput, strpos($imagePathInput, 'storage/') + strlen('storage/'));
-        } else {
-            // if contains full URL, try parse_url
-            $parsed = parse_url($imagePathInput, PHP_URL_PATH);
-            if ($parsed && strpos($parsed, '/storage/') !== false) {
-                $relative = substr($parsed, strpos($parsed, '/storage/') + strlen('/storage/'));
+            if (!$image) {
+                return response()->json(['message' => 'Image not found'], 404);
             }
+
+            // 🗑️ Delete file from storage if it exists
+            if (Storage::disk('public')->exists($image->image_path)) {
+                Storage::disk('public')->delete($image->image_path);
+            }
+
+            // 🗑️ Delete database record
+            $image->delete();
+
+            return response()->json(['message' => 'Image deleted successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error deleting image', 'error' => $e->getMessage()], 500);
         }
-
-        // Ensure product images is array
-        $images = $product->images;
-        if (is_string($images)) {
-            $decoded = json_decode($images, true);
-            $images = is_array($decoded) ? $decoded : [];
-        } elseif (!is_array($images)) {
-            $images = [];
-        }
-
-        // Remove the image (matching by relative path)
-        $updatedImages = array_values(array_filter($images, fn($img) => $img !== $relative));
-
-        // Save updated images to DB
-        $product->images = json_encode($updatedImages);
-        $product->save();
-
-        // Delete the file from storage if exists
-        if (Storage::disk('public')->exists($relative)) {
-            Storage::disk('public')->delete($relative);
-        }
-
-        return response()->json(['message' => 'Image deleted successfully']);
     }
 
     /**

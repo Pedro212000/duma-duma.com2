@@ -14,5 +14,10 @@ class Product extends Model
         'location',
         'description',
     ];
+    public function images()
+    {
+        return $this->hasMany(\App\Models\Admin\ProductImage::class, 'product_id');
+    }
 
 }
+
