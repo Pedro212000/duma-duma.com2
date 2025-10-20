@@ -5,11 +5,8 @@ import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import React, { useState } from 'react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { OctagonX } from 'lucide-react';
 import Swal from 'sweetalert2';
 import axios from 'axios';
-
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -23,7 +20,10 @@ interface Product {
     name: string;
     location: string;
     description: string;
-    images: string[];
+    images: {
+        id: number;
+        image_path: string;
+    }[];
 }
 
 interface Props {
@@ -38,27 +38,24 @@ export default function UpdateProduct({ product }: Props) {
         images: [] as File[],
     });
 
-    const [existingImages, setExistingImages] = useState<string[]>(() => {
-        if (!Array.isArray(product.images)) return [];
-
-        return product.images.map((img: string) => {
-            if (!img) return '';
-
-            // ✅ If it's already a full URL (e.g., external image)
-            if (img.startsWith('http')) return img;
-
-            // ✅ Remove all leading slashes and any repeated "storage/" segments
-            let cleaned = img.replace(/^\/+/, '').replace(/^(storage\/)+/, '');
-
-            // ✅ Ensure exactly one /storage/ prefix
-            return `/storage/${cleaned}`;
-        });
-    });
-
-
-
+    // ✅ Initialize existing images with full URLs
+    const [existingImages, setExistingImages] = useState(
+        product.images.map((img) => ({
+            id: img.id,
+            url: img.image_path.startsWith('http')
+                ? img.image_path
+                : `/storage/${img.image_path.replace(/^\/?storage\//, '')}`,
+        }))
+    );
 
     const [previewImage, setPreviewImage] = useState<string | null>(null);
+
+    // ✅ CSRF setup (required for Laravel)
+    axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+    const token = document
+        .querySelector('meta[name="csrf-token"]')
+        ?.getAttribute('content');
+    if (token) axios.defaults.headers.common['X-CSRF-TOKEN'] = token;
 
     // ✅ Handle file input
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -91,8 +88,8 @@ export default function UpdateProduct({ product }: Props) {
         setData({ ...data, images: files });
     };
 
-    // ✅ Remove image
-    const removeExistingImage = (index: number) => {
+    // ✅ Remove existing image (calls backend)
+    const removeExistingImage = (imageId: number, index: number) => {
         Swal.fire({
             icon: 'question',
             title: 'Remove this image?',
@@ -100,13 +97,26 @@ export default function UpdateProduct({ product }: Props) {
             confirmButtonText: 'Yes, remove it',
         }).then((result) => {
             if (result.isConfirmed) {
-                const updated = existingImages.filter((_, i) => i !== index);
-                setExistingImages(updated);
+                axios
+                    .post(`/products/${product.id}/delete-image`, {
+                        image_id: imageId,
+                    })
+                    .then(() => {
+                        Swal.fire('Deleted!', 'Image removed successfully.', 'success');
+                        setExistingImages((prev) => prev.filter((_, i) => i !== index));
+                    })
+                    .catch((err) => {
+                        Swal.fire(
+                            'Error!',
+                            err.response?.data?.message || 'Failed to delete image.',
+                            'error'
+                        );
+                    });
             }
         });
     };
 
-    // ✅ Submit
+    // ✅ Submit update form
     const handleUpdate = (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -114,10 +124,6 @@ export default function UpdateProduct({ product }: Props) {
         formData.append('name', data.name);
         formData.append('location', data.location);
         formData.append('description', data.description);
-
-        existingImages.forEach((img, i) => {
-            formData.append(`existingImages[${i}]`, img);
-        });
 
         data.images.forEach((file) => {
             formData.append('images[]', file);
@@ -166,7 +172,9 @@ export default function UpdateProduct({ product }: Props) {
                         <Input
                             id="location"
                             value={data.location}
-                            onChange={(e) => setData({ ...data, location: e.target.value })}
+                            onChange={(e) =>
+                                setData({ ...data, location: e.target.value })
+                            }
                         />
                     </div>
 
@@ -199,16 +207,16 @@ export default function UpdateProduct({ product }: Props) {
                     {/* ✅ Previews */}
                     <div className="grid grid-cols-3 gap-3 mt-3">
                         {existingImages.map((img, i) => (
-                            <div key={i} className="relative">
+                            <div key={img.id} className="relative">
                                 <img
-                                    src={img}
+                                    src={img.url}
                                     alt={`Image ${i}`}
                                     className="w-full h-32 object-cover rounded-md border cursor-pointer transition-transform duration-200 hover:scale-105"
-                                    onClick={() => setPreviewImage(img)}
+                                    onClick={() => setPreviewImage(img.url)}
                                 />
                                 <button
                                     type="button"
-                                    onClick={() => removeExistingImage(i)}
+                                    onClick={() => removeExistingImage(img.id, i)}
                                     className="absolute top-1 right-1 bg-red-600 text-white text-xs px-2 py-1 rounded"
                                 >
                                     ✕

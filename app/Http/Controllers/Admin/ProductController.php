@@ -135,21 +135,26 @@ class ProductController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
+
     public function edit(Product $product)
     {
-        // send product with normalized images (like index)
-        $images = $product->images;
-        if (is_string($images)) {
-            $decoded = json_decode($images, true);
-            $images = is_array($decoded) ? $decoded : ($images !== '' ? [$images] : []);
-        } elseif (!is_array($images)) {
-            $images = [];
-        }
+        // ✅ Load the related images
+        $product->load('images');
 
+        // ✅ Format image data for frontend
+        $images = $product->images->map(function ($image) {
+            return [
+                'id' => $image->id,
+                'image_path' => $image->image_path,
+                'url' => Storage::url($image->image_path),
+            ];
+        });
+
+        // ✅ Return Inertia view with proper data
         return Inertia::render('Admin/Products/Edit', [
             'product' => array_merge($product->toArray(), [
                 'images' => $images,
-                'picture_url' => count($images) ? Storage::url($images[0]) : null,
+                'picture_url' => $images->isNotEmpty() ? $images->first()['url'] : null,
             ]),
         ]);
     }
@@ -157,49 +162,56 @@ class ProductController extends Controller
     /**
      * Update the specified resource in storage.
      */
+
     public function update(Request $request, Product $product)
     {
-        $request->validate([
+        // ✅ Validate input
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
             'location' => 'required|string|max:255',
             'description' => 'required|string|max:255',
-            'existingImages' => 'nullable|array',
+            'existingImages' => 'nullable|array', // IDs of images the user kept
             'images.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        // Start with existing images the user chose to keep (should be relative paths)
-        $updatedImages = $request->existingImages ?? [];
+        // ✅ Update product fields
+        $product->update([
+            'name' => $validated['name'],
+            'location' => $validated['location'],
+            'description' => $validated['description'],
+        ]);
 
-        // If existingImages contains full URLs, normalize them here (strip leading /storage/ or full url)
-        $updatedImages = array_map(function ($img) {
-            if (strpos($img, '/storage/') !== false) {
-                return substr($img, strpos($img, '/storage/') + strlen('/storage/'));
-            } elseif (strpos($img, 'storage/') !== false) {
-                return substr($img, strpos($img, 'storage/') + strlen('storage/'));
-            } else {
-                return $img;
-            }
-        }, $updatedImages);
+        // ✅ Only process deletions if `existingImages` is present
+        if ($request->has('existingImages')) {
+            $existingIds = $validated['existingImages'];
 
-        // Handle newly uploaded files
+            // Delete images not in the list (means user removed them)
+            $product->images()
+                ->whereNotIn('id', $existingIds)
+                ->get()
+                ->each(function ($img) {
+                    if (Storage::disk('public')->exists($img->image_path)) {
+                        Storage::disk('public')->delete($img->image_path);
+                    }
+                    $img->delete();
+                });
+        }
+
+        // ✅ Handle new uploads
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $file) {
-                $path = $file->store('uploads/products', 'public'); // -> "uploads/products/xxx.png"
-                $updatedImages[] = $path; // store relative path only
+                $path = $file->store('uploads/products', 'public');
+                ProductImage::create([
+                    'product_id' => $product->id,
+                    'image_path' => $path,
+                ]);
             }
         }
 
-        // Save updates (images as JSON)
-        $product->update([
-            'name' => $request->input('name'),
-            'location' => $request->input('location'),
-            'description' => $request->input('description'),
-            'images' => json_encode($updatedImages),
-        ]);
-
         return redirect()->route('products.index')
-            ->with('message', 'Product Updated Successfully');
+            ->with('message', 'Product updated successfully');
     }
+
 
     /**
      * Remove the specified resource from storage.

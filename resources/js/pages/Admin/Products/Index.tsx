@@ -42,56 +42,6 @@ export default function Index() {
     };
 
 
-    // ✅ Delete image function
-    const handleDeleteImage = async (productId: number, imageId: number) => {
-        const swalResult = await Swal.fire({
-            title: "Delete Image?",
-            text: "Are you sure you want to delete this picture?",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#d33",
-            cancelButtonColor: "#3085d6",
-            confirmButtonText: "Yes, delete it!",
-        });
-
-        const response = await fetch(`/products/${productId}/delete-image`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRF-TOKEN": (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || "",
-                "X-Requested-With": "XMLHttpRequest", // ✅ Add this line
-            },
-            body: JSON.stringify({ image_id: imageId }),
-        });
-
-
-        if (!swalResult.isConfirmed) return;
-
-        // ✅ Instead of fetch, use Inertia's router.post()
-        router.post(`/products/${productId}/delete-image`, { image_id: imageId }, {
-            onSuccess: () => {
-                Swal.fire({
-                    icon: "success",
-                    title: "Deleted!",
-                    text: "Image has been removed.",
-                    timer: 1500,
-                    showConfirmButton: false,
-                });
-
-                if (activeProduct) {
-                    setActiveProduct({
-                        ...activeProduct,
-                        images: activeProduct.images.filter(img => img.id !== imageId),
-                    });
-                }
-            },
-            onError: () => {
-                Swal.fire("Error", "Failed to delete image.", "error");
-            }
-        });
-    };
-
-
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Products" />
@@ -202,13 +152,6 @@ export default function Index() {
                                                 e.currentTarget.src = "/no-image.png";
                                             }}
                                         />
-
-                                        <button
-                                            className="absolute top-2 right-2 bg-red-600 text-white px-3 py-1 text-sm rounded hover:bg-red-700 shadow-md"
-                                            onClick={() => handleDeleteImage(activeProduct.id, img.id)}
-                                        >
-                                            Delete
-                                        </button>
                                     </div>
                                 ))
                             ) : (
