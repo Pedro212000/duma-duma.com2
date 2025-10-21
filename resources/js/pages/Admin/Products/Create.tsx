@@ -6,9 +6,11 @@ import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { useForm } from '@inertiajs/react';
-import React, { useState } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { OctagonX } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { Select } from '@radix-ui/react-select';
+import { SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -18,17 +20,46 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function CreateProduct() {
+
+    const [towns, setTowns] = useState<any[]>([]);
+    const [barangays, setBarangays] = useState<any[]>([]);
+    const [selectedTown, setSelectedTown] = useState("");
     const { data, setData, post, errors, reset } = useForm<{
         name: string;
         location: string;
         description: string;
-        images: File[]; // 👈 define images as an array of Files
+        images: File[];
+        town: string;
+        barangay: string;
     }>({
         name: '',
         location: '',
         description: '',
         images: [],
+        town: '',
+        barangay: '',
     });
+
+    useEffect(() => {
+        fetch("https://psgc.gitlab.io/api/provinces/013300000/municipalities/")
+            .then((res) => res.json())
+            .then(setTowns)
+            .catch((err) => console.error("Failed to fetch towns:", err));
+    }, []);
+
+    useEffect(() => {
+        if (data.town) {
+            const url = `https://psgc.gitlab.io/api/cities-municipalities/${data.town}/barangays/`;
+            console.log("Fetching barangays from:", url);
+
+            fetch(url)
+                .then((res) => res.json())
+                .then(setBarangays)
+                .catch((err) => console.error("Failed to fetch barangays:", err));
+        } else {
+            setBarangays([]);
+        }
+    }, [data.town]);
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -101,14 +132,43 @@ export default function CreateProduct() {
                     </div>
 
                     {/* ✅ Product Location */}
-                    <div className="gap-1.5">
-                        <Label htmlFor="location">Location</Label>
-                        <Input
-                            placeholder="Location"
-                            value={data.location}
-                            onChange={(e) => setData('location', e.target.value)}
-                        />
+                    <div className="space-y-3">
+                        {/* ✅ Town Dropdown */}
+                        <div>
+                            <Label htmlFor="town">Town</Label>
+                            <Select onValueChange={(val) => setData("town", val)}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select Town" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {towns.map((town) => (
+                                        <SelectItem key={town.code} value={town.code}>
+                                            {town.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* ✅ Barangay Dropdown */}
+                        <div>
+                            <Label htmlFor="barangay">Barangay</Label>
+                            <Select onValueChange={(val) => setData("barangay", val)}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select Barangay" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {barangays.map((brgy) => (
+                                        <SelectItem key={brgy.code} value={brgy.name}>
+                                            {brgy.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
+
+
 
                     {/* ✅ Product Description */}
                     <div className="gap-1.5">

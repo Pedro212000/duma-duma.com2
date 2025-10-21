@@ -11,7 +11,8 @@ class Product extends Model
 
     protected $fillable = [
         'name',
-        'location',
+        'town',
+        'barangay',
         'description',
     ];
     public function images()
