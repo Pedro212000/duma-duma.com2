@@ -4,10 +4,12 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 import axios from 'axios';
 import { ArrowLeft } from 'lucide-react';
+import { Select } from '@radix-ui/react-select';
+import { SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -19,7 +21,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 interface Product {
     id?: number;
     name: string;
-    location: string;
+    town: string;
+    barangay: string;
     description: string;
     images: {
         id: number;
@@ -30,14 +33,50 @@ interface Product {
 interface Props {
     product: Product;
 }
+interface Town {
+    code: string; // PSGC codes are usually strings like "013301000"
+    name: string;
+}
+
+interface Barangay {
+    code: string;
+    name: string;
+    municipalityCode: string;
+}
 
 export default function UpdateProduct({ product }: Props) {
     const [data, setData] = useState({
         name: product.name || '',
-        location: product.location || '',
+        town: product.town || '',
+        town_name: '',
+        barangay: product.barangay || '',
         description: product.description || '',
         images: [] as File[],
     });
+
+    const [towns, setTowns] = useState<Town[]>([]);
+    const [barangays, setBarangays] = useState<Barangay[]>([]);
+
+    useEffect(() => {
+        fetch("https://psgc.gitlab.io/api/provinces/013300000/municipalities/")
+            .then((res) => res.json())
+            .then(setTowns)
+            .catch((err) => console.error("Failed to fetch towns:", err));
+    }, []);
+
+    useEffect(() => {
+        if (data.town) {
+            const url = `https://psgc.gitlab.io/api/cities-municipalities/${data.town}/barangays/`;
+            console.log("Fetching barangays from:", url);
+
+            fetch(url)
+                .then((res) => res.json())
+                .then(setBarangays)
+                .catch((err) => console.error("Failed to fetch barangays:", err));
+        } else {
+            setBarangays([]);
+        }
+    }, [data.town]);
 
     // ✅ Initialize existing images with full URLs
     const [existingImages, setExistingImages] = useState(
@@ -123,8 +162,10 @@ export default function UpdateProduct({ product }: Props) {
 
         const formData = new FormData();
         formData.append('name', data.name);
-        formData.append('location', data.location);
+        formData.append('town', data.town_name);
+        formData.append('location', data.barangay);
         formData.append('description', data.description);
+        console.log(data.town_name);
 
         data.images.forEach((file) => {
             formData.append('images[]', file);
@@ -181,15 +222,59 @@ export default function UpdateProduct({ product }: Props) {
                     </div>
 
                     {/* ✅ Product Location */}
-                    <div>
-                        <Label htmlFor="location">Location</Label>
-                        <Input
-                            id="location"
-                            value={data.location}
-                            onChange={(e) =>
-                                setData({ ...data, location: e.target.value })
-                            }
-                        />
+                    <div className="space-y-3">
+                        {/* ✅ Town Dropdown */}
+                        <div>
+                            <Label htmlFor="town">Town</Label>
+                            <Select
+                                value={data.town} // ✅ this should match the field in your form data
+                                onValueChange={(val) => {
+                                    const selectedTown = towns.find((t) => t.code === val);
+                                    setData({
+                                        ...data,
+                                        town: val,
+                                        town_name: selectedTown?.name ?? "",
+                                    });
+                                }}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select Town" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {towns.map((town) => (
+                                        <SelectItem key={town.code} value={town.code}>
+                                            {town.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+
+                        {/* ✅ Barangay Dropdown */}
+                        <div>
+                            <Label htmlFor="barangay">Barangay</Label>
+                            <Select
+                                value={data.barangay}
+                                onValueChange={(val) =>
+                                    setData({
+                                        ...data,
+                                        barangay: val,
+                                    })
+                                }
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select Barangay" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {barangays.map((brgy) => (
+                                        <SelectItem key={brgy.code} value={brgy.name}>
+                                            {brgy.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
 
                     {/* ✅ Product Description */}

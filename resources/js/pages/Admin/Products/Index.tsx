@@ -21,7 +21,8 @@ interface Product {
     id: number;
     name: string;
     description: string;
-    location: string;
+    barangay: string;
+    town_name: string;
     images: ProductImage[];
 }
 
@@ -90,7 +91,7 @@ export default function Index() {
                                 <TableRow key={product.id}>
                                     <TableCell className="font-medium">{product.id}</TableCell>
                                     <TableCell>{product.name}</TableCell>
-                                    <TableCell>{product.location}</TableCell>
+                                    <TableCell>{product.barangay + ", " + product.town_name}</TableCell>
                                     <TableCell>{product.description}</TableCell>
                                     <TableCell className="text-center">
                                         <div className="flex flex-col items-center gap-2">

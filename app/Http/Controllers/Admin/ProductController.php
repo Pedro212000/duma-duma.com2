@@ -40,7 +40,8 @@ class ProductController extends Controller
             return [
                 'id' => $product->id,
                 'name' => $product->name,
-                'location' => $product->location,
+                'barangay' => $product->barangay,
+                'town_name' => $product->town,
                 'description' => $product->description,
                 'images' => $imageData,
             ];
@@ -170,11 +171,14 @@ class ProductController extends Controller
         // ✅ Validate input
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'location' => 'required|string|max:255',
+            'barangay' => 'required|string|max:255',
+            'town' => 'required|string|max:255',
             'description' => 'required|string|max:255',
             'existingImages' => 'nullable|array', // IDs of images the user kept
             'images.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
+        dd($request->all());
+
 
         // ✅ Update product fields
         $product->update([
