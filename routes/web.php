@@ -36,6 +36,7 @@ Route::middleware(['auth', 'verified', 'roleManager:admin'])->group(function () 
     Route::resource('products', controller: ProductController::class);
     Route::put('/products/{product}', [ProductController::class, "update"])->name('products.update');
     Route::post('/products/{product}/delete-image', [ProductController::class, 'deleteImage'])->name('products.deleteImage');
+    Route::delete('/products/{product}', [ProductController::class, "destroy"])->name('products.destroy');
 
 
 

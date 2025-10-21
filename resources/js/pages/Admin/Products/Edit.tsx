@@ -2,11 +2,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import React, { useState } from 'react';
 import Swal from 'sweetalert2';
 import axios from 'axios';
+import { ArrowLeft } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -155,6 +156,19 @@ export default function UpdateProduct({ product }: Props) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Update Product" />
             <div className="w-8/12 p-4">
+                {/* ✅ Back Button */}
+                <div className="mb-4">
+                    <Link href={route('products.index')}>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="flex items-center gap-2 border-gray-400 text-gray-700 hover:bg-gray-100"
+                        >
+                            <ArrowLeft size={16} /> {/* ✅ back icon */}
+                            Back
+                        </Button>
+                    </Link>
+                </div>
                 <form onSubmit={handleUpdate} className="space-y-4">
                     {/* ✅ Product Name */}
                     <div>

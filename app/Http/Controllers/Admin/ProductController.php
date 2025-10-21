@@ -8,6 +8,7 @@ use App\Models\Admin\ProductImage;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class ProductController extends Controller
@@ -216,8 +217,24 @@ class ProductController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Product $product)
     {
-        //
+        DB::transaction(function () use ($product) {
+            // Loop through related images in product_images table
+            foreach ($product->images as $image) {
+                // Delete image file from storage
+                if (Storage::disk('public')->exists($image->image_path)) {
+                    Storage::disk('public')->delete($image->image_path);
+                }
+
+                // Delete image record from product_images table
+                $image->delete();
+            }
+
+            // Delete the product record
+            $product->delete();
+        });
+
+        return redirect()->back()->with('message', 'Product and associated images deleted successfully.');
     }
 }

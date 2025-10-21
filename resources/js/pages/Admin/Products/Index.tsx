@@ -1,7 +1,7 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Button } from '@/components/ui/button';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import React, { useState } from "react";
 import Swal from 'sweetalert2';
@@ -32,8 +32,21 @@ interface PageProps {
 }
 
 export default function Index() {
+    const { processing } = useForm();
     const { products, flash } = usePage<PageProps>().props;
     const [activeProduct, setActiveProduct] = useState<Product | null>(null);
+    const handleDelete = (id: number, name: string) => {
+        if (confirm(`Do you want to delete product ${id}. ${name}?`)) {
+            router.delete(`/products/${id}`, {
+                onSuccess: () => {
+                    console.log('Product deleted successfully.');
+                },
+                onError: (errors) => {
+                    console.error(errors);
+                },
+            });
+        }
+    };
 
 
     const normalizeStoragePath = (url: string): string => {
@@ -113,7 +126,13 @@ export default function Index() {
                                                     Update
                                                 </Button>
                                             </Link>
-                                            <Button variant="destructive">Delete</Button>
+                                            <Button
+                                                disabled={processing}
+                                                onClick={() => handleDelete(product.id, product.name)}
+                                                className="w-full sm:w-auto bg-red-500 hover:bg-red-700 text-white"
+                                            >
+                                                Delete
+                                            </Button>
                                         </div>
                                     </TableCell>
                                 </TableRow>
