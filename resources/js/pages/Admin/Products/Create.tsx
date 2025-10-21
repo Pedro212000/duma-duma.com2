@@ -23,7 +23,7 @@ export default function CreateProduct() {
 
     const [towns, setTowns] = useState<any[]>([]);
     const [barangays, setBarangays] = useState<any[]>([]);
-    const [selectedTown, setSelectedTown] = useState("");
+    const [selectedTown] = useState("");
     const { data, setData, post, errors, reset } = useForm<{
         name: string;
         location: string;
@@ -31,6 +31,7 @@ export default function CreateProduct() {
         images: File[];
         town: string;
         barangay: string;
+        town_name: string;
     }>({
         name: '',
         location: '',
@@ -38,6 +39,7 @@ export default function CreateProduct() {
         images: [],
         town: '',
         barangay: '',
+        town_name: '',
     });
 
     useEffect(() => {
@@ -136,7 +138,13 @@ export default function CreateProduct() {
                         {/* ✅ Town Dropdown */}
                         <div>
                             <Label htmlFor="town">Town</Label>
-                            <Select onValueChange={(val) => setData("town", val)}>
+                            <Select
+                                onValueChange={(val) => {
+                                    const selectedTown = towns.find((t) => t.code === val);
+                                    setData("town", val); // keep the code
+                                    setData("town_name", selectedTown?.name ?? ""); // also store the name
+                                }}
+                            >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select Town" />
                                 </SelectTrigger>
@@ -148,6 +156,7 @@ export default function CreateProduct() {
                                     ))}
                                 </SelectContent>
                             </Select>
+
                         </div>
 
                         {/* ✅ Barangay Dropdown */}
