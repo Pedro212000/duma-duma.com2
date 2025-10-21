@@ -168,39 +168,38 @@ class ProductController extends Controller
 
     public function update(Request $request, Product $product)
     {
-        // ✅ Validate input
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'barangay' => 'required|string|max:255',
             'town' => 'required|string|max:255',
             'description' => 'required|string|max:255',
-            'existingImages' => 'nullable|array', // IDs of images the user kept
+            'existingImages' => 'nullable|array',
             'images.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
-        dd($request->all());
-
 
         // ✅ Update product fields
         $product->update([
             'name' => $validated['name'],
-            'location' => $validated['location'],
+            'town' => $validated['town'],
+            'barangay' => $validated['barangay'],
             'description' => $validated['description'],
         ]);
 
-        // ✅ Only process deletions if `existingImages` is present
+        // ✅ Handle deleted images safely
         if ($request->has('existingImages')) {
-            $existingIds = $validated['existingImages'];
+            $existingIds = $validated['existingImages'] ?? [];
 
-            // Delete images not in the list (means user removed them)
-            $product->images()
-                ->whereNotIn('id', $existingIds)
-                ->get()
-                ->each(function ($img) {
-                    if (Storage::disk('public')->exists($img->image_path)) {
-                        Storage::disk('public')->delete($img->image_path);
-                    }
-                    $img->delete();
-                });
+            if (!empty($existingIds)) {
+                $product->images()
+                    ->whereNotIn('id', $existingIds)
+                    ->get()
+                    ->each(function ($img) {
+                        if (Storage::disk('public')->exists($img->image_path)) {
+                            Storage::disk('public')->delete($img->image_path);
+                        }
+                        $img->delete();
+                    });
+            }
         }
 
         // ✅ Handle new uploads
@@ -218,25 +217,16 @@ class ProductController extends Controller
             ->with('message', 'Product updated successfully');
     }
 
-
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Product $product)
     {
         DB::transaction(function () use ($product) {
-            // Loop through related images in product_images table
             foreach ($product->images as $image) {
-                // Delete image file from storage
                 if (Storage::disk('public')->exists($image->image_path)) {
                     Storage::disk('public')->delete($image->image_path);
                 }
 
-                // Delete image record from product_images table
                 $image->delete();
             }
-
-            // Delete the product record
             $product->delete();
         });
 
