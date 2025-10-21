@@ -18,12 +18,21 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: 'products/create',
     },
 ];
+interface Town {
+    code: string; // PSGC codes are usually strings like "013301000"
+    name: string;
+}
 
+interface Barangay {
+    code: string;
+    name: string;
+    municipalityCode: string;
+}
 export default function CreateProduct() {
 
-    const [towns, setTowns] = useState<any[]>([]);
-    const [barangays, setBarangays] = useState<any[]>([]);
-    const [selectedTown] = useState("");
+    const [towns, setTowns] = useState<Town[]>([]);
+    const [barangays, setBarangays] = useState<Barangay[]>([]);
+
     const { data, setData, post, errors, reset } = useForm<{
         name: string;
         location: string;
@@ -33,15 +42,14 @@ export default function CreateProduct() {
         barangay: string;
         town_name: string;
     }>({
-        name: '',
-        location: '',
-        description: '',
+        name: "",
+        location: "",
+        description: "",
         images: [],
-        town: '',
-        barangay: '',
-        town_name: '',
+        town: "",
+        barangay: "",
+        town_name: "",
     });
-
     useEffect(() => {
         fetch("https://psgc.gitlab.io/api/provinces/013300000/municipalities/")
             .then((res) => res.json())
