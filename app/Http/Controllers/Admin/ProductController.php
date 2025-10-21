@@ -68,15 +68,16 @@ class ProductController extends Controller
         // Validate
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'location' => 'required|string|max:255',
+            'town_name' => 'required|string|max:255',
+            'barangay' => 'required|string|max:255',
             'description' => 'required|string',
             'images.*' => 'nullable|image|mimes:jpeg,png,jpg|max:1024', // 1MB
         ]);
-
         // Create product (without images)
         $product = Product::create([
             'name' => $validated['name'],
-            'location' => $validated['location'],
+            'town' => $validated['town_name'],
+            'barangay' => $validated['barangay'],
             'description' => $validated['description'],
         ]);
 
