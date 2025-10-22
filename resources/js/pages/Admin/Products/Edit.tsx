@@ -162,7 +162,7 @@ export default function UpdateProduct({ product }: Props) {
 
         const formData = new FormData();
         formData.append('name', data.name);
-        formData.append('town', data.town);
+        formData.append('town', data.town_name);
         formData.append('barangay', data.barangay);
         formData.append('description', data.description);
         console.log(data.town_name);

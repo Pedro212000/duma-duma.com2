@@ -76,10 +76,10 @@ class ProductController extends Controller
         ]);
         // Create product (without images)
         $product = Product::create([
-            'name' => $validated['name'],
+            'name' => ucwords(strtolower($validated['name'])),
             'town' => $validated['town_name'],
             'barangay' => $validated['barangay'],
-            'description' => $validated['description'],
+            'description' => ucwords(strtolower($validated['description'])),
         ]);
 
         // Handle images
@@ -177,7 +177,6 @@ class ProductController extends Controller
             'images.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        // ✅ Update product fields
         $product->update([
             'name' => $validated['name'],
             'town' => $validated['town'],

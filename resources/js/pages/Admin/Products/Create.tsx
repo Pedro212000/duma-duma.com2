@@ -185,16 +185,17 @@ export default function CreateProduct() {
                         </div>
                     </div>
 
-
-
                     {/* ✅ Product Description */}
                     <div className="gap-1.5">
                         <Label htmlFor="description">Product Description</Label>
-                        <Input
+                        <textarea
+                            id="description"
                             placeholder="Product Description"
                             value={data.description}
                             onChange={(e) => setData('description', e.target.value)}
-                        />
+                            className="w-full rounded-md border border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            rows={4}
+                        ></textarea>
                     </div>
 
                     {/* ✅ Product Images */}
