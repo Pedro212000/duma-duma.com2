@@ -70,6 +70,7 @@ class ProductController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'town_name' => 'required|string|max:255',
+            'town' => 'required|string|max:255',
             'barangay' => 'required|string|max:255',
             'description' => 'required|string',
             'images.*' => 'nullable|image|mimes:jpeg,png,jpg|max:1024', // 1MB
@@ -77,7 +78,8 @@ class ProductController extends Controller
         // Create product (without images)
         $product = Product::create([
             'name' => ucwords(strtolower($validated['name'])),
-            'town' => $validated['town_name'],
+            'town_name' => $validated['town_name'],
+            'town_code' => $validated['town'],
             'barangay' => $validated['barangay'],
             'description' => ucwords(strtolower($validated['description'])),
         ]);

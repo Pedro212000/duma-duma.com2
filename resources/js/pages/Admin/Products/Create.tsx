@@ -41,6 +41,7 @@ export default function CreateProduct() {
         town: string;
         barangay: string;
         town_name: string;
+        town_code: string;
     }>({
         name: "",
         location: "",
@@ -49,6 +50,7 @@ export default function CreateProduct() {
         town: "",
         barangay: "",
         town_name: "",
+        town_code: "",
     });
     useEffect(() => {
         fetch("https://psgc.gitlab.io/api/provinces/013300000/municipalities/")
@@ -150,7 +152,7 @@ export default function CreateProduct() {
                                 onValueChange={(val) => {
                                     const selectedTown = towns.find((t) => t.code === val);
                                     setData("town", val); // keep the code
-                                    setData("town_name", selectedTown?.name ?? ""); // also store the name
+                                    setData("town_name", selectedTown?.name ?? "");
                                 }}
                             >
                                 <SelectTrigger>
@@ -167,9 +169,11 @@ export default function CreateProduct() {
 
                         </div>
 
+
                         {/* ✅ Barangay Dropdown */}
                         <div>
                             <Label htmlFor="barangay">Barangay</Label>
+
                             <Select onValueChange={(val) => setData("barangay", val)}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select Barangay" />

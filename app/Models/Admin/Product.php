@@ -12,7 +12,8 @@ class Product extends Model
     protected $fillable = [
         'product_code',
         'name',
-        'town',
+        'town_name',
+        'town_code',
         'barangay',
         'description',
     ];
