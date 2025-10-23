@@ -41,7 +41,7 @@ class ProductController extends Controller
                 'id' => $product->id,
                 'name' => $product->name,
                 'barangay' => $product->barangay,
-                'town_name' => $product->town,
+                'town_name' => $product->town_name,
                 'description' => $product->description,
                 'images' => $imageData,
             ];
@@ -173,7 +173,8 @@ class ProductController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'barangay' => 'required|string|max:255',
-            'town' => 'required|string|max:255',
+            'town_name' => 'required|string|max:255',
+            'town_code' => 'required|string|max:255',
             'description' => 'required|string|max:255',
             'existingImages' => 'nullable|array',
             'images.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
@@ -181,7 +182,8 @@ class ProductController extends Controller
 
         $product->update([
             'name' => $validated['name'],
-            'town' => $validated['town'],
+            'town_name' => $validated['town_name'],
+            'town_code' => $validated['town_code'],
             'barangay' => $validated['barangay'],
             'description' => $validated['description'],
         ]);

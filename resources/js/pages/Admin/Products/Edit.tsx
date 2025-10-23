@@ -21,6 +21,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 interface Product {
     id?: number;
     name: string;
+    town_code: string;
     town: string;
     barangay: string;
     description: string;
@@ -47,11 +48,14 @@ interface Barangay {
 export default function UpdateProduct({ product }: Props) {
     const [data, setData] = useState({
         name: product.name || '',
+        town_code: product.town_code || '',
         town: product.town || '',
-        town_name: '',
+        town_name: product.name || '',
         barangay: product.barangay || '',
         description: product.description || '',
         images: [] as File[],
+
+
     });
 
     const [towns, setTowns] = useState<Town[]>([]);
@@ -65,8 +69,8 @@ export default function UpdateProduct({ product }: Props) {
     }, []);
 
     useEffect(() => {
-        if (data.town) {
-            const url = `https://psgc.gitlab.io/api/cities-municipalities/${data.town}/barangays/`;
+        if (data.town_code) {
+            const url = `https://psgc.gitlab.io/api/cities-municipalities/${data.town_code}/barangays/`;
             console.log("Fetching barangays from:", url);
 
             fetch(url)
@@ -162,7 +166,8 @@ export default function UpdateProduct({ product }: Props) {
 
         const formData = new FormData();
         formData.append('name', data.name);
-        formData.append('town', data.town_name);
+        formData.append('town_name', data.town_name);
+        formData.append('town_code', data.town_code);
         formData.append('barangay', data.barangay);
         formData.append('description', data.description);
         console.log(data.town_name);
@@ -227,12 +232,13 @@ export default function UpdateProduct({ product }: Props) {
                         <div>
                             <Label htmlFor="town">Town</Label>
                             <Select
-                                value={data.town} // ✅ this should match the field in your form data
+                                value={data.town_code} // ✅ this should match the field in your form data
                                 onValueChange={(val) => {
                                     const selectedTown = towns.find((t) => t.code === val);
                                     setData({
                                         ...data,
                                         town: val,
+                                        town_code: val,
                                         town_name: selectedTown?.name ?? "",
                                     });
                                 }}
