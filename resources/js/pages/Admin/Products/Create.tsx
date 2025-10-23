@@ -3,11 +3,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { useForm } from '@inertiajs/react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { OctagonX } from 'lucide-react';
+import { ArrowLeft, OctagonX } from 'lucide-react';
 import { useState, useEffect } from "react";
 import { Select } from '@radix-ui/react-select';
 import { SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -33,7 +33,7 @@ export default function CreateProduct() {
     const [towns, setTowns] = useState<Town[]>([]);
     const [barangays, setBarangays] = useState<Barangay[]>([]);
 
-    const { data, setData, post, errors, reset } = useForm<{
+    const { data, setData, post, errors, reset, processing } = useForm<{
         name: string;
         location: string;
         description: string;
@@ -117,6 +117,19 @@ export default function CreateProduct() {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Create Product" />
             <div className="w-8/12 p-4">
+                {/* ✅ Back Button */}
+                <div className="mb-4">
+                    <Link href={route('products.index')}>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="flex items-center gap-2 border-gray-400 text-gray-700 hover:bg-gray-100"
+                        >
+                            <ArrowLeft size={16} /> {/* ✅ back icon */}
+                            Back
+                        </Button>
+                    </Link>
+                </div>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {/* ✅ Error Display */}
                     {Object.keys(errors).length > 0 && (
@@ -228,8 +241,15 @@ export default function CreateProduct() {
                     </div>
 
                     {/* ✅ Submit */}
-                    <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">
-                        Add Product
+                    <Button
+                        type="submit"
+                        disabled={processing}
+                        className={`${processing
+                            ? 'bg-gray-400 cursor-not-allowed'
+                            : 'bg-blue-600 hover:bg-blue-700'
+                            } text-white`}
+                    >
+                        {processing ? "Processing..." : "Create Product"}
                     </Button>
                 </form>
             </div>
