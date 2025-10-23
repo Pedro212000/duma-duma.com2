@@ -181,11 +181,11 @@ class ProductController extends Controller
         ]);
 
         $product->update([
-            'name' => $validated['name'],
+            'name' => ucwords(strtolower($validated['name'])),
             'town_name' => $validated['town_name'],
             'town_code' => $validated['town_code'],
             'barangay' => $validated['barangay'],
-            'description' => $validated['description'],
+            'description' => ucwords(strtolower($validated['description'])),
         ]);
 
         // ✅ Handle deleted images safely
