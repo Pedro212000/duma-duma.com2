@@ -1,32 +1,27 @@
-// AppLayout.tsx
-import { ReactNode } from "react";
+import AppLayout from '@/layouts/app-layout';
+import { type BreadcrumbItem } from '@/types';
+import { Button } from '@/components/ui/button';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import React, { useState } from "react";
+import Swal from 'sweetalert2';
+import { router } from '@inertiajs/react';
 
-export interface BreadcrumbItem {
-    label: string;
-    href?: string;
-}
 
-export interface AppLayoutProps {
-    breadcrumbs: BreadcrumbItem[];
-    children: ReactNode; // 👈 This means "children" must be passed
-}
+const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Places', href: '/places' },
+];
 
-export default function AppLayout({ breadcrumbs = [], children }: AppLayoutProps) {
+export default function Index() {
+
     return (
-        <div>
-            {/* Breadcrumbs */}
-            <nav>
-                {breadcrumbs.map((b, i) => (
-                    <a key={i} href={b.href}>
-                        {b.label}
-                    </a>
-                ))}
-            </nav>
-
-            {/* Page content */}
-            <main>{children}</main>
-            sdfsdf
-        </div>
+        <AppLayout breadcrumbs={breadcrumbs}>
+            <Head title="Places" />
+            <div className="m-4">
+                <Link href="/places/create">
+                    <Button>Create Place</Button>
+                </Link>
+            </div>
+        </AppLayout>
     );
 }
-
