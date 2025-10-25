@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\PlaceController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
@@ -37,6 +38,8 @@ Route::middleware(['auth', 'verified', 'roleManager:admin'])->group(function () 
     Route::put('/products/{product}', [ProductController::class, "update"])->name('products.update');
     Route::post('/products/{product}/delete-image', [ProductController::class, 'deleteImage'])->name('products.deleteImage');
     Route::delete('/products/{product}', [ProductController::class, "destroy"])->name('products.destroy');
+
+    Route::resource('places', controller: PlaceController::class);
 
 
 

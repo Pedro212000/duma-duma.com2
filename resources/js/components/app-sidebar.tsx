@@ -19,7 +19,8 @@ import {
     Users,
     Settings,
     FileText,
-    ShoppingBasket
+    ShoppingBasket,
+    MapPinHouse
 } from 'lucide-react';
 import AppLogo from './app-logo';
 import { PageProps as InertiaPageProps } from '@inertiajs/core'; // ✅ import Inertia's built-in PageProps
@@ -44,6 +45,7 @@ const sidebarConfig: Record<string, NavItem[]> = {
         { title: 'Dashboard', href: '/admin/dashboard', icon: LayoutGrid },
         { title: 'Users', href: '/users', icon: Users },
         { title: 'Products', href: '/products', icon: ShoppingBasket },
+        { title: 'Places', href: '/places', icon: MapPinHouse },
         { title: 'Settings', href: '/settings', icon: Settings },
 
     ],
