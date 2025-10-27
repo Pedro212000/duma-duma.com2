@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Admin\Place;
+use App\Models\Admin\PlaceImage;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -30,8 +32,43 @@ class PlaceController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'town_name' => 'required|string|max:255',
+            'town' => 'required|string|max:255',
+            'barangay' => 'required|string|max:255',
+            'description' => 'required|string',
+            'images.*' => 'nullable|image|mimes:jpeg,png,jpg|max:1024', // 1MB
+        ]);
+        // Create place (without images)
+        $place = Place::create([
+            'name' => ucwords(strtolower($validated['name'])),
+            'town_name' => $validated['town_name'],
+            'town_code' => $validated['town'],
+            'barangay' => $validated['barangay'],
+            'description' => ucwords(strtolower($validated['description'])),
+        ]);
+
+        // Handle images
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                // Store the file and get the relative path
+                $path = $image->store('uploads/places', 'public');
+
+
+                // Create a new PlaceImage record for each uploaded file
+                PlaceImage::create([
+                    'place_id' => $place->id,
+                    'image_path' => $path,
+                ]);
+            }
+        }
+
+        return redirect()
+            ->route('products.index')
+            ->with('success', 'Place created successfully!');
     }
+
 
     /**
      * Display the specified resource.
