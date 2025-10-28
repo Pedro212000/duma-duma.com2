@@ -6,9 +6,14 @@ use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+// Route::get('/', function () {
+//     return Inertia::render('welcome');
+// })->name('home');
+
 Route::get('/', function () {
-    return Inertia::render('welcome');
+    return Inertia::render('Landingpage/App');
 })->name('home');
+
 
 Route::middleware(['auth', 'verified'])->get('/dashboard', function () {
     $user = auth()->user();
