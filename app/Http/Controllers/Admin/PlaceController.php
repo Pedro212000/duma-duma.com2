@@ -15,7 +15,38 @@ class PlaceController extends Controller
      */
     public function index()
     {
-        return Inertia::render('Admin/Places/Index');
+        $places = Place::with('images')->get()->map(function ($place) {
+            $imageData = $place->images->map(function ($image) {
+                $path = $image->image_path;
+
+                // If the path already starts with http (external URL), return as-is
+                if (str_starts_with($path, 'http')) {
+                    return [
+                        'id' => $image->id,
+                        'image_path' => $path,
+                    ];
+                }
+
+                return [
+                    'id' => $image->id,
+                    'image_path' => asset('storage/' . $path),
+                ];
+            });
+
+            // ✅ Return each place with its transformed image data
+            return [
+                'id' => $place->id,
+                'name' => $place->name,
+                'barangay' => $place->barangay,
+                'town_name' => $place->town_name,
+                'description' => $place->description,
+                'images' => $imageData,
+            ];
+        });
+
+        return Inertia::render('Admin/Places/Index', [
+            'places' => $places,
+        ]);
 
     }
 
@@ -65,7 +96,7 @@ class PlaceController extends Controller
         }
 
         return redirect()
-            ->route('products.index')
+            ->route('places.index')
             ->with('success', 'Place created successfully!');
     }
 
