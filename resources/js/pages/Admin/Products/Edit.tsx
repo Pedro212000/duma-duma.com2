@@ -80,7 +80,7 @@ export default function UpdateProduct({ product }: Props) {
         } else {
             setBarangays([]);
         }
-    }, [data.town]);
+    }, [data.town_code]);
 
     // ✅ Initialize existing images with full URLs
     const [existingImages, setExistingImages] = useState(
