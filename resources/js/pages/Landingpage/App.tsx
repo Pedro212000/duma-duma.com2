@@ -9,7 +9,6 @@ import { SharedData } from "@/types";
 
 
 export default function App() {
-    const { } = usePage<SharedData>().props;
     return (
         <div className="min-h-screen">
             <Navbar />
@@ -21,3 +20,4 @@ export default function App() {
         </div>
     );
 }
+
