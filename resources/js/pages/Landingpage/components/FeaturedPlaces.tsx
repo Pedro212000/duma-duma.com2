@@ -24,7 +24,11 @@ const places = [
   }
 ];
 
-export function FeaturedPlaces() {
+interface FeaturedPlacesProps {
+  onTownSelect: (townName: string) => void;
+}
+
+export function FeaturedPlaces({ onTownSelect }: FeaturedPlacesProps) {
   return (
     <section id="places" className="py-20 px-4 sm:px-6 lg:px-8 bg-background">
       <div className="max-w-7xl mx-auto">
@@ -57,8 +61,9 @@ export function FeaturedPlaces() {
                     {place.description}
                   </p>
                   <Button
+                    onClick={() => onTownSelect(place.name)}
                     variant="secondary"
-                    className="w-full bg-white/90 hover:bg-white text-primary"
+                    className="w-full bg-white/90 hover:bg-white text-primary hover:scale-105 transition-all duration-200 hover:shadow-md"
                   >
                     View Products →
                   </Button>
