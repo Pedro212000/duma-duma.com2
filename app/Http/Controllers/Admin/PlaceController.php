@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Admin\Place;
 use App\Models\Admin\PlaceImage;
+use DB;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Storage;
@@ -223,8 +224,19 @@ class PlaceController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Place $place)
     {
-        //
+        DB::transaction(function () use ($place) {
+            foreach ($place->images as $image) {
+                if (Storage::disk('public')->exists($image->image_path)) {
+                    Storage::disk('public')->delete($image->image_path);
+                }
+
+                $image->delete();
+            }
+            $place->delete();
+        });
+
+        return redirect()->back()->with('message', 'Place and associated images deleted successfully.');
     }
 }
