@@ -18,6 +18,7 @@ return new class extends Migration {
             $table->string('town_name');
             $table->string('barangay');
             $table->text('description');
+            $table->text('status');
             $table->timestamps();
         });
     }

@@ -18,7 +18,7 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $products = Product::with('images')->get()->map(function ($product) {
+        $products = Product::with('images')->where('status', 'Approved')->get()->map(function ($product) {
             $imageData = $product->images->map(function ($image) {
                 $path = $image->image_path;
 
@@ -82,6 +82,7 @@ class ProductController extends Controller
             'town_code' => $validated['town'],
             'barangay' => $validated['barangay'],
             'description' => ucwords(strtolower($validated['description'])),
+            'status' => "Approved",
         ]);
 
         // Handle images

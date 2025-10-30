@@ -15,7 +15,7 @@ class PlaceController extends Controller
      */
     public function index()
     {
-        $places = Place::with('images')->get()->map(function ($place) {
+        $places = Place::with('images')->where('status', 'Approved')->get()->map(function ($place) {
             $imageData = $place->images->map(function ($image) {
                 $path = $image->image_path;
 
@@ -78,6 +78,7 @@ class PlaceController extends Controller
             'town_code' => $validated['town'],
             'barangay' => $validated['barangay'],
             'description' => ucwords(strtolower($validated['description'])),
+            'status' => "Approved",
         ]);
 
         // Handle images

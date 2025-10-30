@@ -16,6 +16,7 @@ class Place extends Model
         'town_code',
         'barangay',
         'description',
+        'status',
     ];
 
     public function images()
