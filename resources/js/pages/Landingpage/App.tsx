@@ -7,18 +7,8 @@ import { Footer } from "./components/Footer";
 import { Link, usePage } from '@inertiajs/react';
 import { SharedData } from "@/types";
 import { useState } from "react";
-
-
-
-
-
-
-
 import { TownDetails } from "./components/TownDetails";
-
 import { motion, AnimatePresence } from "framer-motion";
-
-
 
 export default function App() {
     const [selectedTown, setSelectedTown] = useState<string | null>(null);
