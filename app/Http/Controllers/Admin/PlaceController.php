@@ -7,6 +7,7 @@ use App\Models\Admin\Place;
 use App\Models\Admin\PlaceImage;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Storage;
 
 class PlaceController extends Controller
 {
@@ -101,6 +102,34 @@ class PlaceController extends Controller
             ->with('success', 'Place created successfully!');
     }
 
+    public function deleteImage(Request $request, $placeId)
+    {
+        try {
+            $imageId = $request->input('image_id');
+
+            // 🧭 Find the image
+            $image = PlaceImage::where('id', $imageId)
+                ->where('place_id', $placeId)
+                ->first();
+
+            if (!$image) {
+                return response()->json(['message' => 'Image not found'], 404);
+            }
+
+            // 🗑️ Delete file from storage if it exists
+            if (Storage::disk('public')->exists($image->image_path)) {
+                Storage::disk('public')->delete($image->image_path);
+            }
+
+            // 🗑️ Delete database record
+            $image->delete();
+
+            return response()->json(['message' => 'Image deleted successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error deleting image', 'error' => $e->getMessage()], 500);
+        }
+    }
+
 
     /**
      * Display the specified resource.
@@ -113,17 +142,82 @@ class PlaceController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Place $place)
     {
-        //
+        $place->load('images');
+
+        // ✅ Format image data for frontend
+        $images = $place->images->map(function ($image) {
+            return [
+                'id' => $image->id,
+                'image_path' => $image->image_path,
+                'url' => Storage::url($image->image_path),
+            ];
+        });
+
+        // ✅ Return Inertia view with proper data
+        return Inertia::render('Admin/Places/Edit', [
+            'place' => array_merge($place->toArray(), [
+                'images' => $images,
+                'picture_url' => $images->isNotEmpty() ? $images->first()['url'] : null,
+            ]),
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Place $place)
     {
-        //
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'barangay' => 'required|string|max:255',
+            'town_name' => 'required|string|max:255',
+            'town_code' => 'required|string|max:255',
+            'description' => 'required|string|max:255',
+            'existingImages' => 'nullable|array',
+            'images.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        ]);
+
+        $place->update([
+            'name' => ucwords(strtolower($validated['name'])),
+            'town_name' => $validated['town_name'],
+            'town_code' => $validated['town_code'],
+            'barangay' => $validated['barangay'],
+            'description' => ucwords(strtolower($validated['description'])),
+        ]);
+
+        // ✅ Handle deleted images safely
+        if ($request->has('existingImages')) {
+            $existingIds = $validated['existingImages'] ?? [];
+
+            if (!empty($existingIds)) {
+                $place->images()
+                    ->whereNotIn('id', $existingIds)
+                    ->get()
+                    ->each(function ($img) {
+                        if (Storage::disk('public')->exists($img->image_path)) {
+                            Storage::disk('public')->delete($img->image_path);
+                        }
+                        $img->delete();
+                    });
+            }
+        }
+
+        // ✅ Handle new uploads
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $file) {
+                $path = $file->store('uploads/places', 'public');
+                PlaceImage::create([
+                    'place_id' => $place->id,
+                    'image_path' => $path,
+                ]);
+            }
+        }
+
+        return redirect()->route('places.index')
+            ->with('message', 'Place updated successfully');
+
     }
 
     /**
